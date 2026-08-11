@@ -27,6 +27,7 @@ import com.techstore.order.dto.response.RevenueStatsResponse;
 import com.techstore.order.dto.response.TopLoyalCustomerResponse;
 import com.techstore.order.dto.response.TopVariantResponse;
 import com.techstore.order.service.OrderService;
+import com.techstore.order.service.saga.OrderSagaCommandService;
 import com.techstore.order.util.VNPayUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderSagaCommandService sagaCommandService;
 
     @GetMapping("/customer/{customerId}")
     public ApiResponse<List<CustomerOrderResponse>> getOrdersByCustomer(
@@ -64,6 +66,12 @@ public class OrderController {
         return ApiResponse.<OrderResponse>builder()
                 .result(orderService.createOrder(request, ipAddress))
                 .build();
+    }
+
+    @PostMapping("/saga")
+    public ApiResponse<Long> createOrder(@RequestBody OrderCreateRequest request) {
+        Long orderId = sagaCommandService.createOrder(request);
+        return ApiResponse.<Long>builder().result(orderId).build();
     }
 
     @GetMapping("/order-detail/{id}")

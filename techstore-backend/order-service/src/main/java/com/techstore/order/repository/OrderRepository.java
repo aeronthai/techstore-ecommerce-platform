@@ -195,4 +195,6 @@ ORDER BY od.variantId, label
             @Param("variantIds") List<Long> variantIds,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
+
+    List<Order> findByStatusInAndCreatedAtBefore(List<String> statuses, LocalDateTime before);
 }
