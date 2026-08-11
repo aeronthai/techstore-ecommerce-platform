@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.techstore.product.client.FileServiceClient;
 import com.techstore.product.client.WarehouseServiceClient;
+import com.techstore.product.configuration.CacheNames;
 import com.techstore.product.constant.UploadFolder;
 import com.techstore.product.dto.request.ProductCreateRequestDTO;
 import com.techstore.product.dto.request.ProductSearchRequestDTO;
@@ -66,6 +70,12 @@ public class ProductService {
     /**
      * Thêm sản phẩm mới (yêu cầu role ADMIN)
      */
+    @Caching(
+            evict = {
+                @CacheEvict(value = CacheNames.PRODUCT_DETAIL, key = "#result.id"),
+                @CacheEvict(value = CacheNames.PRODUCT_LIST, allEntries = true),
+                @CacheEvict(value = CacheNames.PRODUCT_AI, allEntries = true)
+            })
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProductResponseDTO createProduct(ProductCreateRequestDTO req) {
@@ -106,6 +116,12 @@ public class ProductService {
      * Cập nhật thông tin sản phẩm (yêu cầu role ADMIN)
      * Chỉ cập nhật những trường được gửi hoặc có giá trị
      */
+    @Caching(
+            evict = {
+                @CacheEvict(value = CacheNames.PRODUCT_DETAIL, key = "#id"),
+                @CacheEvict(value = CacheNames.PRODUCT_LIST, allEntries = true),
+                @CacheEvict(value = CacheNames.PRODUCT_AI, allEntries = true)
+            })
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProductResponseDTO updateProductInfo(Long id, ProductUpdateRequestDTO req) {
@@ -155,6 +171,11 @@ public class ProductService {
         return productMapper.toResponseDTO(saved);
     }
 
+    @Caching(
+            evict = {
+                @CacheEvict(value = CacheNames.PRODUCT_DETAIL, key = "#productId"),
+                @CacheEvict(value = CacheNames.PRODUCT_LIST, allEntries = true)
+            })
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProductResponseDTO updateProductImages(
@@ -330,6 +351,12 @@ public class ProductService {
     /**
      * Cập nhật trạng thái sản phẩm (yêu cầu role ADMIN)
      */
+    @Caching(
+            evict = {
+                @CacheEvict(value = CacheNames.PRODUCT_DETAIL, key = "#id"),
+                @CacheEvict(value = CacheNames.PRODUCT_LIST, allEntries = true),
+                @CacheEvict(value = CacheNames.PRODUCT_AI, allEntries = true)
+            })
     @PreAuthorize("hasRole('ADMIN')")
     public ProductResponseDTO updateProductStatus(Long id, ProductStatusUpdateRequestDTO requestDTO) {
         Product product =
@@ -343,6 +370,7 @@ public class ProductService {
     /**
      * Lấy sản phẩm theo ID
      */
+    @Cacheable(value = CacheNames.PRODUCT_DETAIL, key = "#id")
     @Transactional(readOnly = true)
     public ProductResponseDTO getProductById(Long id) {
 
@@ -371,6 +399,9 @@ public class ProductService {
     /**
      * Lấy danh sách tất cả sản phẩm (có phân trang)
      */
+    @Cacheable(
+            value = CacheNames.PRODUCT_LIST,
+            key = "'all:' + #page + ':' + #size + ':' + #sortBy + ':' + #sortDirection")
     @Transactional(readOnly = true)
     public PageResponseDTO<ProductListResponseDTO> getAllProducts(
             int page, int size, String sortBy, String sortDirection) {
@@ -417,6 +448,9 @@ public class ProductService {
                 productPage.isLast());
     }
 
+    @Cacheable(
+            value = CacheNames.PRODUCT_LIST,
+            key = "'cat:' + #categoryId + ':' + #page + ':' + #size + ':' + #sortBy + ':' + #sortDirection")
     @Transactional(readOnly = true)
     public PageResponseDTO<ProductListResponseDTO> getProductsByCategoryId(
             Long categoryId,
@@ -501,6 +535,7 @@ public class ProductService {
         return productMapper.toResponseDTO(product);
     }
 
+    @Cacheable(value = CacheNames.PRODUCT_AI, key = "'pc-components'")
     @Transactional(readOnly = true)
     public List<ProductAIResponseDTO> getPCComponentsForAI() {
 

@@ -24,12 +24,32 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      database: 1
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+cache:
+  ttl:
+    product-detail: 300      # 5 phút
+    product-list: 120        # 2 phút
+    product-ai: 600          # 10 phút
+            
 app:
   services:
     identity: ${IDENTITY_SERVICE_INTERNAL_URL:http://localhost:8080/identity}
