@@ -7,6 +7,7 @@ services:
         container_name: mysql
         hostname: mysql
         restart: always
+        profiles: ["database"]
         ports:
             - "3307:3306"
         environment:
@@ -22,6 +23,7 @@ services:
         container_name: mongodb
         hostname: mongodb
         restart: always
+        profiles: ["database"]
         command: mongod --auth --bind_ip_all
         ports:
             - "27018:27017"
@@ -38,6 +40,7 @@ services:
         container_name: redis
         hostname: redis
         restart: always
+        profiles: ["database"]
         ports:
             - "6380:6379"
         volumes:
@@ -50,6 +53,7 @@ services:
         container_name: rabbitmq
         hostname: rabbitmq
         restart: always
+        profiles: ["messaging"]
         ports:
             - "5672:5672"
             - "15672:15672"
@@ -66,6 +70,7 @@ services:
         container_name: kafka
         hostname: kafka
         restart: always
+        profiles: ["messaging"]
         ports:
             - "9094:9094"
         environment:
@@ -115,21 +120,6 @@ services:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
         depends_on:
             - elasticsearch
-        networks:
-            - backend
-
-  # ================= MODERATION SERVICE =================
-    moderation-service:
-        build: ../techstore-backend/moderation-service
-        container_name: moderation-service
-        hostname: moderation-service
-        restart: "no"
-        profiles: ["app"]
-        ports:
-            - "8089:8089"
-        depends_on:
-            - redis
-            - kafka
         networks:
             - backend
     
@@ -313,7 +303,22 @@ services:
       restart: "no"
       profiles: ["app"]
       networks:
-        - backend 
+        - backend
+
+ # ================= MODERATION SERVICE =================
+    moderation-service:
+        build: ../techstore-backend/moderation-service
+        container_name: moderation-service
+        hostname: moderation-service
+        restart: "no"
+        profiles: ["app"]
+        ports:
+            - "8089:8089"
+        depends_on:
+            - redis
+            - kafka
+        networks:
+            - backend 
 
 volumes:
     mysql_data:
